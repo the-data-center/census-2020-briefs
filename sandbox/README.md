@@ -1,0 +1,2 @@
+# sandbox
+This is the place to explore new data throughout a project or safely experiment without cluttering up other folders. If this is a collaborative project, each team member would get their own subfolder.
