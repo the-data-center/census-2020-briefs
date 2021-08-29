@@ -21,20 +21,17 @@ race_nbhd2020 <- pl_std_tract %>%
             other_not_hisp = sum(pop_aian) + sum(pop_other))
 
 addtl_nbhd2020 <- full_join(housing_nbhd2020, race_nbhd2020, by = "Neighborhood") %>%
-  mutate(year = 2020)
+  mutate(year = 2020) %>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 
 
 
-#### 2010 data
-NOLAcrosswalk2010 <- read_csv("inputs/neighborhoodCrosswalk2010.csv") %>%
-  mutate(tract = str_sub(GEOID, 6,))
-  
 
-pl_raw_2010 <- pl_read("inputs/la2010.pl")
-
-pl_tract_2010 <- pl_subset(pl_raw_2010, sumlev="140")
-
-pl_std_tract_2010 <- pl_select_standard(pl_tract_2010)
 
 housing_nbhd2010 <- pl_tract_2010 %>%
   filter(COUNTY == "071") %>%
@@ -58,7 +55,17 @@ race_nbhd2010 <- pl_std_tract_2010 %>%
             other_not_hisp = sum(pop_aian) + sum(pop_other))
 
 addtl_nbhd2010 <- full_join(housing_nbhd2010, race_nbhd2010, by = "Neighborhood") %>%
-  mutate(year = 2010)
+  mutate(year = 2010) %>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 
 addtl_nbhd <- bind_rows(addtl_nbhd2010, addtl_nbhd2020)
-write_csv(addtl_nbhd, file = "outputs/Additional neighborhood data, 2020 census.csv")
+# write_csv(addtl_nbhd, file = "outputs/Additional neighborhood data, 2020 census.csv")
+
+addtl_nbhd_wide <- addtl_nbhd %>%
+  pivot_longer(!c(Neighborhood, year), names_to = "vars", values_to = "vals") %>%
+  pivot_wider(names_from = c(year, vars), values_from = vals)

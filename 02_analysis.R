@@ -47,7 +47,7 @@ hhGq_metro2020 <- hhGq_parish2020 %>%
 hhGq_parish_updated <- bind_rows(mutate_all(hhGq_parish_old, as.character), mutate_all(hhGq_parish2020, as.character), mutate_all(hhGq_metro2020, as.character)) %>%
   select(-GEOID)
 
-write_csv(hhGq_parish_updated,"outputs/hhGq_parish_updated.csv")
+# write_csv(hhGq_parish_updated,"outputs/hhGq_parish_updated.csv")
 
 ### tab2_nbhd
 hhGq_nbhd2020 <- pl_tract %>%
@@ -85,18 +85,36 @@ hhGq_nbhd2020 <- pl_tract %>%
   adorn_totals("row")
 
 
-write_csv(hhGq_nbhd2020,"outputs/hhGq_nbhd_updated.csv")
+# write_csv(hhGq_nbhd2020,"outputs/hhGq_nbhd_updated.csv")
 
 #### BRIEF 2 ###
 ## children in neighborhoods ##
 
 ### old data
 nbhdChildren_pop_old <- read_csv("inputs/census2020briefs_nbhdChildren - population.csv") %>%
-  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))
+  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 nbhdChildren_chil_old <- read_csv("inputs/census2020briefs_nbhdChildren - children.csv") %>%
-  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))
+  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 nbhdChildren_adu_old <- read_csv("inputs/census2020briefs_nbhdChildren - adults.csv") %>%
-  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))
+  mutate(Neighborhood = gsub(pattern =  "[*]", replacement = "", x = Neighborhood))%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 
 
 ### tab 1 - population
@@ -119,7 +137,7 @@ nbhdChildren_pop_updated <- full_join(nbhdChildren_pop_old, nbhdChildren_pop2020
 
 pop2020 <- nbhdChildren_pop_updated %>% select(`Population, 2020`)
 
-write_csv(nbhdChildren_pop_updated,"outputs/nbhdChildren_pop_updated.csv")
+# write_csv(nbhdChildren_pop_updated,"outputs/nbhdChildren_pop_updated.csv")
 ### tab 3 - adults
 nbhdChildren_adu2020 <- pl_tract %>%
   filter(COUNTY == "071") %>%
@@ -139,7 +157,7 @@ nbhdChildren_adu_updated <- full_join(nbhdChildren_adu_old, nbhdChildren_adu2020
          `Percent change, 2010-20` = percent((`Adults, 2020` - `Adults,              2010`)/`Adults,              2010`),
          `Percent Adults, 2020` = percent(`Adults, 2020`/ pop2020$`Population, 2020`))
 
-write_csv(nbhdChildren_adu_updated,"outputs/nbhdChildren_adu_updated.csv")
+# write_csv(nbhdChildren_adu_updated,"outputs/nbhdChildren_adu_updated.csv")
 ### tab 2 - children
 nbhdChildren_adu2020.inclAreaTot <-pl_tract %>%
   filter(COUNTY == "071") %>%
@@ -168,11 +186,11 @@ nbhdChildren_chil_updated <- full_join(nbhdChildren_chil_old, nbhdChildren_chil2
          `Percent change, 2010-20` = percent((`Children, 2020` - `Children,              2010`)/`Children,              2010`),
          `Percent Children, 2020` = percent(`Children, 2020`/ pop2020$`Population, 2020`))
 
-write_csv(nbhdChildren_chil_updated,"outputs/nbhdChildren_chil_updated.csv")
+# write_csv(nbhdChildren_chil_updated,"outputs/nbhdChildren_chil_updated.csv")
 
 
 ### BRIEF 3 ###
-## 
+## population & race
 metro_pop_old <- read_csv("inputs/census2020briefs_popHousRaceMetro - pop.csv")
 metro_black_nh_old <- read_csv("inputs/census2020briefs_popHousRaceMetro - black_nh.csv")%>%
   rename(Parish = Parishes)
@@ -223,7 +241,7 @@ metro_pop_updated <- bind_rows(mutate_all(metro_pop_old, as.character),
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(metro_pop_updated, "outputs/metro_pop_updated.csv")
+# write_csv(metro_pop_updated, "outputs/metro_pop_updated.csv")
 
 ###black
 stJ_racePop <- get_decennial(geography = "county",
@@ -259,7 +277,7 @@ metro_black_nh_updated <- bind_rows(mutate_all(metro_black_nh_old, as.character)
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6, )) %>%
   pivot_wider(names_from = vars, values_from = vals)
   
-write_csv(metro_black_nh_updated, "outputs/metro_black_nh_updated.csv")
+# write_csv(metro_black_nh_updated, "outputs/metro_black_nh_updated.csv")
 
 ###white
 stJ_racePop <- get_decennial(geography = "county",
@@ -294,7 +312,7 @@ metro_white_nh_updated <- bind_rows(mutate_all(metro_white_nh_old, as.character)
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(metro_white_nh_updated, "outputs/metro_white_nh_updated.csv")
+# write_csv(metro_white_nh_updated, "outputs/metro_white_nh_updated.csv")
 
 ###api
 stJ_racePop <- get_decennial(geography = "county",
@@ -331,7 +349,7 @@ metro_api_nh_updated <- bind_rows(mutate_all(metro_api_nh_old, as.character),
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(metro_api_nh_updated, "outputs/metro_api_nh_updated.csv")
+# write_csv(metro_api_nh_updated, "outputs/metro_api_nh_updated.csv")
 
 
 ###other
@@ -369,7 +387,7 @@ metro_other_nh_updated <- bind_rows(mutate_all(metro_other_nh_old, as.character)
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(metro_other_nh_updated, "outputs/metro_other_nh_updated.csv")
+# write_csv(metro_other_nh_updated, "outputs/metro_other_nh_updated.csv")
 
 ###hisp
 stJ_racePop <- get_decennial(geography = "county",
@@ -404,7 +422,7 @@ metro_hisp_updated <- bind_rows(mutate_all(metro_hisp_old, as.character),
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(metro_hisp_updated, "outputs/metro_hisp_updated.csv")
+# write_csv(metro_hisp_updated, "outputs/metro_hisp_updated.csv")
 
 
 ###two or more
@@ -458,4 +476,4 @@ two_nh_updated <- left_join(two_nh_2010, two_nh_2020, by = "Parish") %>%
   mutate(Year = str_sub(vars,1,4), vars = str_sub(vars, 6,)) %>%
   pivot_wider(names_from = vars, values_from = vals)
 
-write_csv(two_nh_updated, "outputs/metro_two_nh_2020.csv")
+# write_csv(two_nh_updated, "outputs/metro_two_nh_2020.csv")

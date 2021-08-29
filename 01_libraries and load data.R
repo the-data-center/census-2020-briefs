@@ -6,6 +6,15 @@ library(janitor)
 library(scales)
 library(tidycensus)
 
+npData <- read_csv("inputs/NP Max! data.csv")%>%
+  rename(Neighborhood = geo) %>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
+
 Parish <- c("Jefferson",              
                   "Orleans",                 
                   "Plaquemines",            
@@ -32,6 +41,23 @@ stJpop <- stJ2020 <- pl_parish %>%
   filter(GEOID == "22093") %>%
   select(GEOID, P0010001)
 
+#### 2010 data
+NOLAcrosswalk2010 <- read_csv("inputs/neighborhoodCrosswalk2010.csv") %>%
+  mutate(tract = str_sub(GEOID, 6,))%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
+
+
+pl_raw_2010 <- pl_read("inputs/la2010.pl")
+
+pl_tract_2010 <- pl_subset(pl_raw_2010, sumlev="140")
+
+pl_std_tract_2010 <- pl_select_standard(pl_tract_2010)
+
 library(tigris)
 pop2010 <- tigris::tracts(year = 2010, state = "LA", county = "071", cb = TRUE, class = "sf", progress_bar = FALSE) %>%
   rename(area = CENSUSAREA) %>%
@@ -45,17 +71,38 @@ nbhdChildren_pop2020 <- pl_tract %>%
   select(Neighborhood = geo, TRACT, P0010001, AREALAND) %>%
   # group_by(Neighborhood) %>%
   mutate(areaTot = AREALAND/ 2589988) %>%
-  full_join(pop2010, by = "TRACT")
+  full_join(pop2010, by = "TRACT") %>%
 summarise(totPop = sum(P0010001), totArea = sum(areaTot), dens = totPop/totArea)
 
-nbhdChildren_pop2010 <- pl_tract10 %>%
+nbhdChildren_pop2010 <- pl_tract_2010 %>%
   filter(COUNTY == "071") %>%
   # right_join(NOLAcrosswalk2020, by  = c("TRACT" = "tract"))  %>%
   select( TRACT, P0010001, AREALAND) %>%
   # group_by(Neighborhood) %>%
-  mutate(areaTot = AREALAND/ 2589988) %>%
+  mutate(areaTot = as.numeric(AREALAND)/ 2589988) %>%
   mutate(popTot = sum(`Population, 2020`),
          `Share of                    total,                2020` = percent(`Population, 2020`/popTot, accuracy = .01)) %>%
   adorn_totals("row")%>%
   mutate(`Density per                       sq mi of                       developed land,                            2020` =
            round(`Population, 2020`/areaTot, digits = 0))
+
+
+
+#### Mapping pieces
+library(sf)
+library(directlabels)
+library(grid)
+library(scales)
+library(tigris)
+library(RColorBrewer)
+tracts.la <- sf::st_read("inputs/tl_2010_22_tract10/tl_2010_22_tract10.shp")
+nbhds2020 <- sf::st_read("inputs/Let_me_know_if_these_shape_files_work/NewOrleansNH2020a.shp")
+
+parishes_sf <- tigris::counties(state = "22", class = "sf")
+
+Orleans.water_sf <- tigris::area_water("22", "Orleans Parish", class = "sf")
+# Jefferson.water_sf <- tigris::area_water("22", "Jefferson Parish", class = "sf")
+# StCharles.water_sf <- tigris::area_water("22", "St. Charles Parish", class = "sf")
+# otherwater.simple_sf <- sf::st_read(here("inputs/water/Otherwater_clipped_SimplifyP.shp"))
+# wetlands.simple_sf <- sf::st_read(here("inputs/water/Wetlands2_Clip_SimplifyPolyg.shp"))
+
