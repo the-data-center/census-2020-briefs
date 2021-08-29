@@ -6,9 +6,9 @@ library(janitor)
 library(scales)
 library(tidycensus)
 
-npData <- read_csv("inputs/NP Max! data.csv")%>%
+npData <- read_csv("inputs/NP Max! data.csv")%>%  ### this file can be found here: https://github.com/the-data-center/np-max-plus/blob/main/Neighborhood%20Profiles/NP%20Max!%20data.csv
   rename(Neighborhood = geo) %>%
-  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood), ## you'll see this chunck of code mutating the nbhd names around -- they need to match in order to join year-to-year
          Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
          Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
          Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
@@ -52,6 +52,8 @@ NOLAcrosswalk2010 <- read_csv("inputs/neighborhoodCrosswalk2010.csv") %>%
          Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood))
 
 
+## can find the 2010 pl files here: https://www2.census.gov/programs-surveys/decennial/2010/data/01-Redistricting_File--PL_94-171/Louisiana/
+##  you can try to download it using the r pkg form the url like with the 2020 file above, but for me that only downloaded 2020 data somehow...
 pl_raw_2010 <- pl_read("inputs/la2010.pl")
 
 pl_tract_2010 <- pl_subset(pl_raw_2010, sumlev="140")
