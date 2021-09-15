@@ -66,7 +66,7 @@ hhGq_nbhd2020 <- pl_tract %>%
          `Total noninstitutional` = P0050007,
          `College/\nuniversity student housing` = P0050008,
          `Military\nquarters`=P0050009,
-         `Other  noninstitutional` = P0050010,) %>%
+         `Other  noninstitutional` = P0050010) %>%
     group_by(Neighborhood) %>%
     summarise(Population= sum(Population),
               `Occupied \nunits` = sum(`Occupied \nunits`),
@@ -122,6 +122,12 @@ nbhdChildren_pop2020 <- pl_tract %>%
   filter(COUNTY == "071") %>%
   right_join(NOLAcrosswalk2020, by  = c("TRACT" = "tract"))  %>%
   select(Neighborhood = geo, P0010001, AREALAND) %>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood)) %>%
   group_by(Neighborhood) %>%
   summarise(`Population, 2020` = sum(P0010001), areaTot = sum(AREALAND)/ 2589988) %>%
   mutate(popTot = sum(`Population, 2020`),
@@ -131,7 +137,7 @@ nbhdChildren_pop2020 <- pl_tract %>%
            round(`Population, 2020`/areaTot, digits = 0)) %>%
   select(-areaTot, -popTot)
 
-nbhdChildren_pop_updated <- full_join(nbhdChildren_pop_old, nbhdChildren_pop2020) %>%
+nbhdChildren_pop_updated <- inner_join(nbhdChildren_pop_old, nbhdChildren_pop2020) %>%
   mutate(`Total change, 2010-20` = `Population, 2020` - `Population,              2010`,
          `Percent change, 2010-20` = (`Population, 2020` - `Population,              2010`)/`Population,              2010`)
 
@@ -142,7 +148,13 @@ pop2020 <- nbhdChildren_pop_updated %>% select(`Population, 2020`)
 nbhdChildren_adu2020 <- pl_tract %>%
   filter(COUNTY == "071") %>%
   right_join(NOLAcrosswalk2020, by  = c("TRACT" = "tract"))  %>%
-  select(Neighborhood = geo, P0030001, AREALAND) %>%
+  select(Neighborhood = geo, P0030001, AREALAND)%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood)) %>%
   group_by(Neighborhood) %>%
   summarise(`Adults, 2020` = sum(P0030001), areaTot = sum(AREALAND)/ 2589988) %>%
   mutate(popTot = sum(`Adults, 2020`),
@@ -162,7 +174,13 @@ nbhdChildren_adu_updated <- full_join(nbhdChildren_adu_old, nbhdChildren_adu2020
 nbhdChildren_adu2020.inclAreaTot <-pl_tract %>%
   filter(COUNTY == "071") %>%
   right_join(NOLAcrosswalk2020, by  = c("TRACT" = "tract"))  %>%
-  select(Neighborhood = geo, P0030001, AREALAND) %>%
+  select(Neighborhood = geo, P0030001, AREALAND)%>%
+  mutate(Neighborhood = ifelse(grepl("Cath", Neighborhood), "Lake Catherine/Village de L'est", Neighborhood),
+         Neighborhood = ifelse(grepl("Lakesh", Neighborhood), "Lakeshore/Lake Vista", Neighborhood),
+         Neighborhood = ifelse(grepl("Marl", Neighborhood), "Marlyville/Fontainebleau", Neighborhood),
+         Neighborhood = ifelse(grepl("New A", Neighborhood), "New Aurora/English Turn", Neighborhood),
+         Neighborhood = ifelse(grepl("Tall", Neighborhood), "Tall Timbers/Brechtel", Neighborhood),
+         Neighborhood = ifelse(grepl("Viav", Neighborhood), "Viavant/Venetian Isles", Neighborhood)) %>%
   group_by(Neighborhood) %>%
   summarise(`Adults, 2020` = sum(P0030001), areaTot = sum(AREALAND)/ 2589988) %>%
   mutate(popTot = sum(`Adults, 2020`),
@@ -181,7 +199,7 @@ nbhdChildren_chil2020 <- left_join(nbhdChildren_pop2020, nbhdChildren_adu2020.in
   mutate(`Share of                    total,                2020` = percent(`Children, 2020`/popTot, accuracy = .01)) %>%
   select(-areaTot, -popTot)
 
-nbhdChildren_chil_updated <- full_join(nbhdChildren_chil_old, nbhdChildren_chil2020) %>%
+nbhdChildren_chil_updated <- left_join(nbhdChildren_chil_old, nbhdChildren_chil2020) %>%
   mutate(`Total change, 2010-20` = `Children, 2020` - `Children,              2010`,
          `Percent change, 2010-20` = percent((`Children, 2020` - `Children,              2010`)/`Children,              2010`),
          `Percent Children, 2020` = percent(`Children, 2020`/ pop2020$`Population, 2020`))

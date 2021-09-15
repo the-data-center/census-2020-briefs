@@ -93,17 +93,22 @@ nbhdChildren_pop2010 <- pl_tract_2010 %>%
 #### Mapping pieces
 library(sf)
 library(directlabels)
+library(stringr)
 library(grid)
 library(scales)
 library(tigris)
 library(RColorBrewer)
 tracts.la <- sf::st_read("inputs/tl_2010_22_tract10/tl_2010_22_tract10.shp")
-nbhds2020 <- sf::st_read("inputs/Let_me_know_if_these_shape_files_work/NewOrleansNH2020a.shp")
+nbhds2020 <- sf::st_read("inputs/Let_me_know_if_these_shape_files_work/NewOrleansNH2020a.shp") %>%
+  mutate(Name2 = ifelse(grepl("Cath", Name2), "Lake Catherine/Village de L'est", Name2))
+
+nbhds2010 <- sf::st_read("inputs/NO neighborhood boundaries shp/Neighborhood_2015_newer.shp")%>%
+  mutate(NBHD_NAME = ifelse(NBHD_NAME == "Desire", "Desire Dev & Neighborhood", NBHD_NAME))
 
 parishes_sf <- tigris::counties(state = "22", class = "sf")
 
 Orleans.water_sf <- tigris::area_water("22", "Orleans Parish", class = "sf")
-# Jefferson.water_sf <- tigris::area_water("22", "Jefferson Parish", class = "sf")
+Jefferson.water_sf <- tigris::area_water("22", "Jefferson Parish", class = "sf")
 # StCharles.water_sf <- tigris::area_water("22", "St. Charles Parish", class = "sf")
 # otherwater.simple_sf <- sf::st_read(here("inputs/water/Otherwater_clipped_SimplifyP.shp"))
 # wetlands.simple_sf <- sf::st_read(here("inputs/water/Wetlands2_Clip_SimplifyPolyg.shp"))
