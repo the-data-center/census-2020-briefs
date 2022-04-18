@@ -4,6 +4,62 @@
 ## old data
 hhGq_parish_old <- read_csv("inputs/census2020briefs_data_HHsize_GQ - parish.csv")
 
+
+stJ_hhGc_10Raw <- get_decennial(geography = "county",
+                             state = "LA",
+                             county = "093",
+                             variables = c("P042001","P042002","P042003","P042004","P042005","P042006","P042007","P042008","P042009","P042010"),
+                             year = 2010)
+
+stJ_hhGc_10 <- stJ_hhGc_10Raw %>%
+  select(variable, value) %>%
+  pivot_wider(names_from = variable, values_from = value)%>%
+  rename(`Total group quarters population` =P042001,
+         `Total institutional`= P042002,
+         `Adult correctional\nfacilties`=P042003,
+         `Juvenile \nfacilities`= P042004,
+         `Nursing \nfacilities`= P042005,
+         `Other institutional`= P042006,
+         `Total noninstitutional` = P042007,
+         `College/\nuniversity student housing` = P042008,
+         `Military\nquarters`=P042009,
+         `Other  noninstitutional` = P042010)
+
+stJ_hhGq_10PO <- pl_parish_2010 %>%
+  right_join(parish_xwalk, by = "GEOID") %>%
+  select(GEOID, Parish, P0010001, H0010002, contains("P005")) %>%
+  rename(Population = P0010001,
+         `Occupied \nunits` = H0010002) %>%
+  # mutate_all(as.character) %>%
+  mutate(Year = 2010) %>%
+  filter(Parish == "St. James")
+
+stJ_hhGq_10All <- bind_cols(stJ_hhGq_10PO, stJ_hhGc_10) %>%
+  mutate(`Average household size` = round(((Population - `Total group quarters population`) / `Occupied \nunits`), 
+                                          digits = 2))
+
+hhGq_metro2010 <- hhGq_parish_old %>% 
+  filter(Year == 2010,
+         Parish != "New Orleans Metro Total") %>%
+  mutate_at(c(3:15), as.numeric)%>%
+  bind_rows(stJ_hhGq_10All %>% mutate_at(c(3:16), as.numeric)) %>%
+  summarise(Parish = "New Orleans Metro Total",
+            Population= sum(Population, na.rm = TRUE),
+            `Occupied \nunits` = sum(`Occupied \nunits`, na.rm = TRUE),
+            `Total group quarters population` = sum(`Total group quarters population`, na.rm = TRUE),
+            `Total institutional` = sum(`Total institutional`, na.rm = TRUE),
+            `Adult correctional\nfacilties` = sum(`Adult correctional\nfacilties`, na.rm = TRUE),
+            `Juvenile \nfacilities` = sum(`Juvenile \nfacilities`, na.rm = TRUE),
+            `Nursing \nfacilities` = sum(`Nursing \nfacilities`, na.rm = TRUE),
+            `Other institutional` = sum(`Other institutional`, na.rm = TRUE),
+            `Total noninstitutional` = sum(`Total noninstitutional`, na.rm = TRUE),
+            `College/\nuniversity student housing` = sum(`College/\nuniversity student housing`, na.rm = TRUE),
+            `Military\nquarters` = sum(`Military\nquarters`, na.rm = TRUE),
+            `Other  noninstitutional` = sum(`Other  noninstitutional`, na.rm = TRUE))%>%
+  mutate(Year = 2010,
+         `Average household size` = round(((Population - `Total group quarters population`) / `Occupied \nunits`), 
+                                          digits = 2))
+
 ### tab1_parish
 
 hhGq_parish2020 <- pl_parish %>%
@@ -20,7 +76,7 @@ hhGq_parish2020 <- pl_parish %>%
          `Total noninstitutional` = P0050007,
          `College/\nuniversity student housing` = P0050008,
          `Military\nquarters`=P0050009,
-         `Other  noninstitutional` = P0050010,) %>%
+         `Other  noninstitutional` = P0050010) %>%
   # mutate_all(as.character) %>%
   mutate(Year = 2020,
          `Average household size` = round(((Population - `Total group quarters population`) / `Occupied \nunits`), 
@@ -44,8 +100,13 @@ hhGq_metro2020 <- hhGq_parish2020 %>%
          `Average household size` = round(((Population - `Total group quarters population`) / `Occupied \nunits`), 
                                           digits = 2))
 
-hhGq_parish_updated <- bind_rows(mutate_all(hhGq_parish_old, as.character), mutate_all(hhGq_parish2020, as.character), mutate_all(hhGq_metro2020, as.character)) %>%
-  select(-GEOID)
+hhGq_parish_updated <- bind_rows((mutate_all(hhGq_parish_old, as.character) %>% filter(Parish != "New Orleans Metro Total")),
+                                 mutate_all(stJ_hhGq_10All, as.character),
+                                 mutate_all(hhGq_metro2010, as.character),
+                                 mutate_all(hhGq_parish2020, as.character), 
+                                 mutate_all(hhGq_metro2020, as.character)) %>%
+  select(-GEOID) %>%
+  filter(Year %in% c("2010", "2020"))
 
 # write_csv(hhGq_parish_updated,"outputs/hhGq_parish_updated.csv")
 
@@ -86,6 +147,24 @@ hhGq_nbhd2020 <- pl_tract %>%
 
 
 # write_csv(hhGq_nbhd2020,"outputs/hhGq_nbhd_updated.csv")
+
+
+hhGq_bg <- pl_bg %>%
+  filter(COUNTY == "071") %>%
+  select(GEOID, P0010001, H0010002, contains("P005")) %>%
+  rename(Population = P0010001,
+         `Occupied \nunits` = H0010002,
+         `Total group quarters population` =P0050001,
+         `Total institutional`= P0050002,
+         `Adult correctional\nfacilties`=P0050003,
+         `Juvenile \nfacilities`= P0050004,
+         `Nursing \nfacilities`= P0050005,
+         `Other institutional`= P0050006,
+         `Total noninstitutional` = P0050007,
+         `College/\nuniversity student housing` = P0050008,
+         `Military\nquarters`=P0050009,
+         `Other  noninstitutional` = P0050010) 
+
 
 #### BRIEF 2 ###
 ## children in neighborhoods ##

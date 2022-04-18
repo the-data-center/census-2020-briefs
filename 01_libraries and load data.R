@@ -26,6 +26,9 @@ Parish <- c("Jefferson",
 GEOID <-c("22051", "22071", "22075", "22087", "22089", "22093", "22095", "22103")  
 parish_xwalk <- data.frame(Parish, GEOID)
 
+bg.la <- sf::st_read("inputs/tl_2020_22_bg/tl_2020_22_bg.shp") %>%
+  filter(COUNTYFP == "071")
+
 NOLAcrosswalk2020 <- read_csv("inputs/NOLAcrosswalk2020.csv")
 
 pl_raw <- pl_read("https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Louisiana/la2020.pl.zip")
@@ -33,6 +36,8 @@ pl_raw <- pl_read("https://www2.census.gov/programs-surveys/decennial/2020/data/
 pl_parish <- pl_subset(pl_raw, sumlev="050")
 
 pl_tract <- pl_subset(pl_raw, sumlev="140")
+
+pl_bg <- pl_subset(pl_raw, sumlev="150")
 
 pl_std_parish <- pl_select_standard(pl_parish)
 pl_std_tract <- pl_select_standard(pl_tract)
@@ -59,6 +64,8 @@ pl_raw_2010 <- pl_read("inputs/la2010.pl")
 pl_tract_2010 <- pl_subset(pl_raw_2010, sumlev="140")
 
 pl_std_tract_2010 <- pl_select_standard(pl_tract_2010)
+
+pl_parish_2010 <- pl_subset(pl_raw_2010, sumlev="050")
 
 library(tigris)
 pop2010 <- tigris::tracts(year = 2010, state = "LA", county = "071", cb = TRUE, class = "sf", progress_bar = FALSE) %>%
